@@ -33,6 +33,7 @@ jobs:
       - name: Run tests
         run: npm test --prefix second-action-react-demo
   deploy:
+    needs: test
     # Na jakém OS se job spustí (ubuntu, windows, macos, atd)
     runs-on: ubuntu-latest
     
