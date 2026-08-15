@@ -32,33 +32,33 @@ jobs:
       # Krok 4: Spusť testy
       - name: Run tests
         run: npm test --prefix second-action-react-demo
-    deploy:
+  deploy:
       # Na jakém OS se job spustí (ubuntu, windows, macos, atd)
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
       
       # STEPS - jednotlivé příkazy v pořadí
-      steps:
+    steps:
         # Krok 1: Stáhni kód z GitHub repo
-        - name: Get code
-          uses: actions/checkout@v4
+      - name: Get code
+        uses: actions/checkout@v4
         
         # Krok 2: Nainstaluj Node.js verzi 20
-        - name: install NodeJS
-          uses: actions/setup-node@v4
-          with:
-            node-version: 20
+      - name: install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
         
         # Krok 3: Spusť npm install v adresáři second-action-react-demo
         # (--prefix = pracuj v této složce)
-        - name: Install dependencies
-          run: npm install --prefix second-action-react-demo
+      - name: Install dependencies
+        run: npm install --prefix second-action-react-demo
         
         # Krok 4: Spusť build příkaz pro React aplikaci
-        - name: Build project
-          run: npm run build --prefix second-action-react-demo
+      - name: Build project
+        run: npm run build --prefix second-action-react-demo
         
         # Krok 5: Nainstaluj Firebase CLI
-        - name: Deploy
-          run: echo "Deploying..." 
+      - name: Deploy
+        run: echo "Deploying..." 
 
     
