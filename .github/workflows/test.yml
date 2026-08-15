@@ -6,8 +6,6 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v4
-        with:
-          path: second-action-react-demo
       - name: install NodeJS
         uses: actions/setup-node@v4
         with:
