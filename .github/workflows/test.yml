@@ -6,13 +6,15 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v4
+      - name: Debug
+        run: ls -la
+      - name: Debug second-action
+        run: ls -la second-action-react-demo/
       - name: install NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: Install dependencies
-        run: npm install
-        working-directory: ./second-action-react-demo
+        run: npm install --prefix second-action-react-demo
       - name: Run tests
-        run: npm test
-        working-directory: ./second-action-react-demo
+        run: npm test --prefix second-action-react-demo
