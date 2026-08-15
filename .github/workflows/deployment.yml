@@ -33,16 +33,16 @@ jobs:
       - name: Run tests
         run: npm test --prefix second-action-react-demo
   deploy:
-      # Na jakém OS se job spustí (ubuntu, windows, macos, atd)
+    # Na jakém OS se job spustí (ubuntu, windows, macos, atd)
     runs-on: ubuntu-latest
-      
-      # STEPS - jednotlivé příkazy v pořadí
+    
+    # STEPS - jednotlivé příkazy v pořadí
     steps:
-        # Krok 1: Stáhni kód z GitHub repo
+      # Krok 1: Stáhni kód z GitHub repo
       - name: Get code
         uses: actions/checkout@v4
-        
-        # Krok 2: Nainstaluj Node.js verzi 20
+      
+      # Krok 2: Nainstaluj Node.js verzi 20
       - name: install NodeJS
         uses: actions/setup-node@v4
         with:
