@@ -1,0 +1,138 @@
+# ============================================
+# WORKFLOW #1: Lint, Test & Deploy
+# ============================================
+# Co to dělá?
+# 1. Automaticky se spustí když pusheš kód do GitHub
+# 2. Zkontroluje kod (lint)
+# 3. Spustí testy
+# 4. Vytvoří build soubory
+# 5. Vše se dělá postupně - jeden krok po druhém
+#
+# Proč to máme?
+# - Zabránit špatného kódu na GitHub
+# - Ujistit se že aplikace funguje
+# - Automaticky vytvořit optimalizovanou verzi
+
+name: Lint, Test & Deploy
+
+# ============================================
+# TRIGGER - Kdy se workflow spustí?
+# ============================================
+# 'push' = vždy když pusheš kód na GitHub
+# (i když pushneš jenom jednu linku kódu)
+on: push
+
+jobs:
+  # ============================================
+  # JOB #1: LINT (Kontrola kódu)
+  # ============================================
+  # Co dělá?
+  # - Kontroluje jestli je kód napsaný podle pravidel (ESLint)
+  # - Např.: správné odsazení, chybějící středníky, nepoužívané proměnné
+  # - Automaticky opraví co se dá
+  #
+  # Běží na: Ubuntu (Linux)
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # Krok 1: Stáhni všechen kód z GitHub repo
+      - name: Get code
+        uses: actions/checkout@v4
+      
+      # Krok 2: Nainstaluj Node.js (verze 20)
+      # Node.js = prostředí na spuštění JavaScriptu
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      # Krok 3: Instalace balíčků (všechny npm balíčky z package.json)
+      # npm = Package Manager - stáhne React, Vite, ESLint, atd.
+      - name: Install dependencies
+        run: npm install
+      
+      # Krok 4: Spusť ESLint (nástroj na kontrolu kódu)
+      # Příkaz: npm run lint
+      # Co dělá? Kontroluje src/ složku a automaticky opravuje chyby
+      - name: Run linter
+        run: npm run lint
+
+  # ============================================
+  # JOB #2: TEST (Spuštění testů)
+  # ============================================
+  # Co dělá?
+  # - Spouští automatické testy (Vitest)
+  # - Testuje jestli komponenty fungují správně
+  # - Pokud test selže = workflow selže
+  #
+  # DŮLEŽITÉ: Spustí se AŽ POTÉ co LINT skončí!
+  # (needs: lint = počkej na lint)
+  test:
+    needs: lint  # Počkej až se LINT job skončí, pak teprv spusť TEST
+    runs-on: ubuntu-latest
+    steps:
+      # Krok 1: Stáhni kód
+      - name: Get code
+        uses: actions/checkout@v4
+      
+      # Krok 2: Nainstaluj Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      # Krok 3: Instaluj balíčky
+      - name: Install dependencies
+        run: npm install
+      
+      # Krok 4: Spusť testy (vitest)
+      # Příkaz: npm test
+      # Co testuje? Počet prvků, správné texty, kliknutí na tlačítka, atd.
+      - name: Run tests
+        run: npm test
+
+  # ============================================
+  # JOB #3: BUILD (Vytvoření optimalizované verze)
+  # ============================================
+  # Co dělá?
+  # - Vezme tvoj React kód a zkompiluje ho
+  # - Vytvoří minimalizovaný HTML + CSS + JS
+  # - Výsledek jde do `/dist` složky (distibution = hotova aplikace)
+  # - Tuto verzi pak můžeš nasadit na internet
+  #
+  # DŮLEŽITÉ: Spustí se AŽ POTÉ co TEST skončí!
+  # (needs: test = počkej na test)
+  build:
+    needs: test  # Počkej až se TEST job skončí, pak teprv spusť BUILD
+    runs-on: ubuntu-latest
+    steps:
+      # Krok 1: Stáhni kód
+      - name: Get code
+        uses: actions/checkout@v4
+      
+      # Krok 2: Nainstaluj Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      # Krok 3: Instaluj balíčky
+      - name: Install dependencies
+        run: npm install
+      
+      # Krok 4: Build aplikaci (Vite)
+      # Příkaz: npm run build
+      # Co dělá? Vezme src/ kód a vytvoří finální dist/ soubory
+      - name: Build aplikaci
+        run: npm run build
+      
+      # Krok 5: Ulož /dist složku jako ARTEFAKT
+      # Artefakt = soubory které si můžeš stáhnout
+      # GitHub Actions ti je udrží 90 dní
+      # Později je můžeš nasadit na server
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist       # Název artefaktu
+          path: dist/      # Cesta k souborům co chceš uložit
+

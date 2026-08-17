@@ -3,7 +3,7 @@ name: Deploy Project
 
 # TRIGGER - kdy se workflow spustí
 # 'push' = vždy když pushneš kód na GitHub
-on: push
+on: [push, workflow_dispatch]
 
 # JOBS - seznam úloh které se mají spustit
 jobs: 
