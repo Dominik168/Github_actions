@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/02 Finished Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
@@ -32,10 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/02 Finished Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
@@ -47,7 +47,7 @@ jobs:
         id: run-tests
         run: npm run test
       - name: Upload test report
-        uses: actions/upload-artifact@v3 # bez if: - nahraje se vzdy, i kdyz test krok selhal (diky continue-on-error)
+        uses: actions/upload-artifact@v4 # bez if: - nahraje se vzdy, i kdyz test krok selhal (diky continue-on-error)
         with:
           name: test-report
           path: Code/06 Execution Flow/02 Finished Project/test.json
@@ -56,10 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/02 Finished Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
@@ -70,7 +70,7 @@ jobs:
         id: build-website
         run: npm run build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: Code/06 Execution Flow/02 Finished Project/dist
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-files
       - name: Output contents

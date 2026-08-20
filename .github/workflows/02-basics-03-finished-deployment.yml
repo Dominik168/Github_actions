@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache # id kroku - jeho outputs jsou pak dostupne pres steps.cache.outputs.*
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
@@ -31,10 +31,10 @@ jobs:
     runs-on: ubuntu-latest # samostatna VM - lint a test bezi PARALELNE (zadny needs: mezi nimi)
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
@@ -43,7 +43,7 @@ jobs:
       - name: Test code
         run: npm run test
       - name: Upload test report
-        uses: actions/upload-artifact@v3 # nahraje test.json jako artefakt, dostupny i pri prohlizeni v GH UI
+        uses: actions/upload-artifact@v4 # nahraje test.json jako artefakt, dostupny i pri prohlizeni v GH UI
         with:
           name: test-report
           path: Code/02 Basics/03 Finished Project/test.json
@@ -52,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
@@ -65,7 +65,7 @@ jobs:
         id: build-website
         run: npm run build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: Code/02 Basics/03 Finished Project/dist
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifacts
-        uses: actions/download-artifact@v3 # stahne artefakt "dist-files" nahrany v jobu build, do teto nove VM
+        uses: actions/download-artifact@v4 # stahne artefakt "dist-files" nahrany v jobu build, do teto nove VM
         with:
           name: dist-files
       - name: Output contents

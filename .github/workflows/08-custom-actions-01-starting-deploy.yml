@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install NodeJS
-        uses: actions/setup-node@v3 # nainstaluje konkretni verzi Node.js na runner (ubuntu-latest ji sice ma predinstalovanou, ale jinou verzi)
+        uses: actions/setup-node@v4 # nainstaluje konkretni verzi Node.js na runner (ubuntu-latest ji sice ma predinstalovanou, ale jinou verzi)
         with:
           node-version: 18
       - name: Install dependencies
@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3 # nova VM = novy checkout, i kdyz uz probehl v jobu "test"
+        uses: actions/checkout@v4 # nova VM = novy checkout, i kdyz uz probehl v jobu "test"
       - name: Install NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Install dependencies

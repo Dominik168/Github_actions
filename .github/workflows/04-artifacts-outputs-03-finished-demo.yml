@@ -30,10 +30,10 @@ jobs:
     steps:
       # Steps run sequentially inside the SAME runner/VM, sharing filesystem & shell state.
       - name: Get code
-        uses: actions/checkout@v3 # clones the repo into the runner's workspace (without this, workspace is empty)
+        uses: actions/checkout@v4 # clones the repo into the runner's workspace (without this, workspace is empty)
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # cache "path" is always relative to $GITHUB_WORKSPACE (repo root), NOT affected by "defaults.run.working-directory"
           path: ~/.npm # folder to persist between workflow runs (npm's global cache, not node_modules itself)
@@ -63,10 +63,10 @@ jobs:
     steps:
       # Fresh VM again -> repo must be checked out again, cache must be restored again (nothing persists automatically).
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('Code/04 Artifacts & Outputs/03 Finished Project/**/package-lock.json') }}
@@ -84,7 +84,7 @@ jobs:
         run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3 # artifacts = files persisted after job ends, downloadable by later jobs/UI
+        uses: actions/upload-artifact@v4 # artifacts = files persisted after job ends, downloadable by later jobs/UI
         with:
           name: dist-files # artifact identifier, used by "download-artifact" in the deploy job
           # upload "path" is also always relative to repo root, not to working-directory
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifacts
-        uses: actions/download-artifact@v3 # downloads artifact uploaded earlier, restores files into this fresh VM
+        uses: actions/download-artifact@v4 # downloads artifact uploaded earlier, restores files into this fresh VM
         with:
           name: dist-files # must match the name used in upload-artifact
 

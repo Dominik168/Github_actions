@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/01 Starting Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
@@ -33,10 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/01 Starting Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
@@ -48,7 +48,7 @@ jobs:
         run: npm run test
       - name: Upload test report
         if: failure() && steps.run-tests.outcome == 'failure' # nahraje report jen pri selhani testu
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: Code/06 Execution Flow/01 Starting Project/test.json
@@ -57,10 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Code/06 Execution Flow/01 Starting Project/node_modules
           key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
@@ -71,7 +71,7 @@ jobs:
         id: build-website
         run: npm run build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: Code/06 Execution Flow/01 Starting Project/dist
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-files
       - name: Output contents

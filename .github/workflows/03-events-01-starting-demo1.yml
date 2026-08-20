@@ -17,7 +17,7 @@ jobs:
       - name: Output event data
         run: echo "${{ toJSON(github.event) }}" # jen pro ladeni - vypise cely payload udalosti push
       - name: Get code
-        uses: actions/checkout@v3 # bez tohoto kroku by npm prikazy nize nemely package.json k dispozici (VM je prazdna)
+        uses: actions/checkout@v4 # bez tohoto kroku by npm prikazy nize nemely package.json k dispozici (VM je prazdna)
       - name: Install dependencies
         run: npm ci # instaluje presne zavislosti dle package-lock.json (rychlejsi a deterministictejsi nez npm install)
       - name: Test code

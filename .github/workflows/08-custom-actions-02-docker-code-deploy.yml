@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Load & cache dependencies
         id: cache-deps # jeho output (used-cache) se cte v dalsim kroku
         uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps # lokalni composite/docker akce - definuje vlastni kroky pro cache+install
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Load & cache dependencies
         uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps
       - name: Test code
@@ -41,7 +41,7 @@ jobs:
         run: npm run test
       - name: Upload test report
         if: failure() && steps.run-tests.outcome == 'failure' # nahraje report jen kdyz test krok selhal
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: Code/08 Custom Actions/02 Docker Code/test.json
@@ -50,13 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Load & cache dependencies
         uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps
       - name: Build website
         run: npm run build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: Code/08 Custom Actions/02 Docker Code/dist
@@ -65,9 +65,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-files
           path: Code/08 Custom Actions/02 Docker Code/dist

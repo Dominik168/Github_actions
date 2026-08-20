@@ -29,7 +29,7 @@ jobs:
       - name: Output event data
         run: echo "${{ toJSON(github.event) }}" # obsah se lisi podle typu udalosti (push vs pull_request payload)
       - name: Get code
-        uses: actions/checkout@v3 # naklonuje repo do runneru - bez toho by npm prikazy nemely s cim pracovat
+        uses: actions/checkout@v4 # naklonuje repo do runneru - bez toho by npm prikazy nemely s cim pracovat
       - name: Install dependencies
         run: npm ci # cisty install presne dle lockfile
       - name: Test code
