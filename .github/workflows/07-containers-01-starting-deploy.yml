@@ -1,0 +1,41 @@
+# moved from: Code/07 Containers/01 Starting Project/.github/workflows/deploy.yml
+# TEORIE: "environment: testing" - job muze cerpat secrets/vars specificke pro toto GitHub Environment,
+# volitelne s pravidly ochrany (napr. manualni schvaleni pred spustenim).
+name: "[07 Containers / 01 Starting] Deployment"
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'Code/07 Containers/01 Starting Project/**'
+defaults:
+  run:
+    working-directory: Code/07 Containers/01 Starting Project
+jobs:
+  test:
+    environment: testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-deps-${{ hashFiles('Code/07 Containers/01 Starting Project/**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Run server
+        run: npm start & npx wait-on http://127.0.0.1:XYZ # spusti server na pozadi (&) a ceka az bude dostupny na dane URL
+      - name: Run tests
+        run: npm test
+      - name: Output information
+        run: echo "..."
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output information
+        run: |        
+          echo "..."

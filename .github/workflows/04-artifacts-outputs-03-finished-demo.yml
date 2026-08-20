@@ -1,11 +1,23 @@
+# moved from: Code/04 Artifacts & Outputs/03 Finished Project/.github/workflows/demo.yml
+# TEORIE (cesky prehled): tento soubor demonstruje 2 klicove mechanismy predavani dat mezi joby (kazdy job = vlastni izolovana VM):
+# 1) "artifacts" (actions/upload-artifact + download-artifact) - predavaji CELE SOUBORY (napr. slozku dist/)
+# 2) "outputs" (jobs.<id>.outputs + needs.<id>.outputs) - predavaji jen MALE TEXTOVE HODNOTY (napr. jmeno souboru)
 # Workflow = top-level automation unit, lives in .github/workflows/*.yml, triggered by events on the repo.
-name: Deploy website
+name: "[04 Artifacts & Outputs / 03 Finished] Deploy website"
 
 # "on" defines the trigger(s). Multiple events/filters possible (push, pull_request, workflow_dispatch, schedule, ...).
 on:
   push:
     branches:
       - main # only pushes to main trigger this workflow (feature branches won't run it)
+    # scope trigger to this project's own subfolder only - other projects' pushes won't run it
+    paths:
+      - 'Code/04 Artifacts & Outputs/03 Finished Project/**'
+
+# repo is still checked out whole; this just makes every "run:" step below cd into the project subfolder first
+defaults:
+  run:
+    working-directory: Code/04 Artifacts & Outputs/03 Finished Project
 
 # "jobs" = collection of jobs. Each job runs in its own fresh virtual machine (runner), in parallel by default.
 jobs:
@@ -23,10 +35,11 @@ jobs:
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
+          # cache "path" is always relative to $GITHUB_WORKSPACE (repo root), NOT affected by "defaults.run.working-directory"
           path: ~/.npm # folder to persist between workflow runs (npm's global cache, not node_modules itself)
           # key uniquely identifies the cache entry; hashFiles() hashes lockfile content
           # -> cache hit only if lockfile is unchanged since last run, saving download time
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+          key: deps-node-modules-${{ hashFiles('Code/04 Artifacts & Outputs/03 Finished Project/**/package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci # "clean install": uses package-lock.json exactly, faster & more reproducible than "npm install"
@@ -56,7 +69,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+          key: deps-node-modules-${{ hashFiles('Code/04 Artifacts & Outputs/03 Finished Project/**/package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
@@ -74,10 +87,8 @@ jobs:
         uses: actions/upload-artifact@v3 # artifacts = files persisted after job ends, downloadable by later jobs/UI
         with:
           name: dist-files # artifact identifier, used by "download-artifact" in the deploy job
-          path: dist # what to upload; whole "dist" folder here
-          # path: |
-          #   dist
-          #   package.json
+          # upload "path" is also always relative to repo root, not to working-directory
+          path: Code/04 Artifacts & Outputs/03 Finished Project/dist
 
   # ---------------------------------------------------------------------
   # JOB 3: deploy

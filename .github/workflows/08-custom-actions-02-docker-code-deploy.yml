@@ -1,0 +1,87 @@
+# moved from: Code/08 Custom Actions/02 Docker Code/.github/workflows/deploy.yml
+# note: local composite actions (uses: ./...) resolve relative to REPO ROOT, never to working-directory -
+# they were NOT moved and still live under Code/08 Custom Actions/02 Docker Code/.github/actions/
+# TEORIE: "uses: ./cesta/k/akci" = vlastni (custom) LOKALNI akce definovana v repu (na rozdil od "actions/xyz@v3" z Marketplace).
+# Muze byt typu composite (kombinuje vice kroku), docker (bezi v kontejneru) nebo javascript. Zde jde o Docker-based akci
+# (deploy-s3-javascript pravdepodobne stavi Docker image z Dockerfile v te slozce a spousti ho jako krok).
+name: "[08 Custom Actions / 02 Docker Code] Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/08 Custom Actions/02 Docker Code/**'
+defaults:
+  run:
+    working-directory: Code/08 Custom Actions/02 Docker Code
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        id: cache-deps # jeho output (used-cache) se cte v dalsim kroku
+        uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps # lokalni composite/docker akce - definuje vlastni kroky pro cache+install
+        with:
+          caching: 'false' # vstupni parametr predany do te vlastni akce
+      - name: Output information
+        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps
+      - name: Test code
+        id: run-tests
+        run: npm run test
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure' # nahraje report jen kdyz test krok selhal
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: Code/08 Custom Actions/02 Docker Code/test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/cached-deps
+      - name: Build website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/08 Custom Actions/02 Docker Code/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+          path: Code/08 Custom Actions/02 Docker Code/dist
+      - name: Output contents
+        run: ls
+      - name: Deploy site
+        id: deploy
+        uses: ./Code/08 Custom Actions/02 Docker Code/.github/actions/deploy-s3-javascript # vlastni deploy akce (build image z Dockerfile a spusti ho)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} # predano do akce jako env promenna (akce si je cte uvnitr)
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          bucket: gha-custom-action-hosting
+          dist-folder: Code/08 Custom Actions/02 Docker Code/dist
+      - name: Output information
+        run: |
+          echo "Live URL: ${{ steps.deploy.outputs.website-url }}" # output definovany vlastni akci, vraceny z jejiho action.yml

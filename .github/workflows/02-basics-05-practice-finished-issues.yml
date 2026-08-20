@@ -1,0 +1,13 @@
+# moved from: Code/02 Basics/05 Practice Project (Finished)/.github/workflows/issues.yml
+# TEORIE: "on: issues" bez "types:" = trigger na VSECHNY typy udalosti issue (opened, edited, closed, labeled, ...).
+# "toJSON(github.event)" - vypise cely JSON payload udalosti, uzitecne pro objeveni dostupnych poli pri vyvoji workflow.
+name: "[02 Basics / 05 Practice Finished] Handle issues"
+on: issues
+jobs:
+  output-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output event details
+        # github.event = payload konkretni udalosti (pro issues obsahuje napr. issue.title, issue.number, action, sender...)
+        # narozdil od cele github promenne je uzsi - jen data k teto konkretni udalosti
+        run: echo "${{ toJSON(github.event) }}"

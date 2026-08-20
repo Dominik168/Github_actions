@@ -1,0 +1,28 @@
+# moved from: Code/03 Events/01 Starting Project/.github/workflows/demo1.yml
+# TEORIE: nejjednodussi push trigger - jeden branch filtr + paths filtr (omezeni na tento projekt).
+name: "[03 Events / 01 Starting] Events Demo 1"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/03 Events/01 Starting Project/**'
+defaults:
+  run:
+    working-directory: Code/03 Events/01 Starting Project
+jobs:
+  deploy: # jediny job - vsechny kroky bezi sekvencne v jedne VM (zadna paralelizace mezi joby zde neni)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output event data
+        run: echo "${{ toJSON(github.event) }}" # jen pro ladeni - vypise cely payload udalosti push
+      - name: Get code
+        uses: actions/checkout@v3 # bez tohoto kroku by npm prikazy nize nemely package.json k dispozici (VM je prazdna)
+      - name: Install dependencies
+        run: npm ci # instaluje presne zavislosti dle package-lock.json (rychlejsi a deterministictejsi nez npm install)
+      - name: Test code
+        run: npm run test # spusti testovaci skript definovany v package.json - non-zero exit code = job selze
+      - name: Build code
+        run: npm run build # vyrobi produkcni build (typicky do slozky dist/)
+      - name: Deploy project
+        run: echo "Deploying..." # placeholder - realny deploy by nahral build na hosting/cloud

@@ -1,0 +1,26 @@
+# moved from: Code/09 Security/02 Finished Project/.github/workflows/label-issues-real.yml
+# TEORIE: "permissions:" omezuje opravneni vychoziho GITHUB_TOKEN pro tento job
+# (princip nejmensich opravneni) - bez tohoto bloku by token mel siroka prava dle repo nastaveni.
+# "if:" na urovni kroku - podminka se vyhodnoti PRED spustenim run, takze zadny shell injection risk (vyraz jde do GH expression enginu, ne do shellu).
+name: "[09 Security / 02 Finished] Label Issues (Permissions Example)"
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  assign-label:
+    permissions:
+      issues: write # explicitni opravneni - token smi jen zapisovat na issues, nic vic
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign label
+        if: contains(github.event.issue.title, 'bug') # podmineny krok - vyhodnoceno GH enginem pred spustenim
+        run: |
+          curl -X POST \
+          --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+          -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          -H 'content-type: application/json' \
+          -d '{
+              "labels": ["bug"]
+            }' \
+          --fail

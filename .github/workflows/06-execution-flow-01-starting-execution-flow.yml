@@ -1,0 +1,98 @@
+# moved from: Code/06 Execution Flow/01 Starting Project/.github/workflows/execution-flow.yml
+# TEORIE: standardni 4-jobovy pipeline (lint + test bezi paralelne, build ceka na test, deploy ceka na build).
+# "if: steps.cache.outputs.cache-hit != 'true'" - install se presskoci, pokud cache uz obsahuje presnou shodu (usetri cas).
+# "report" job s "if: failure()" bezi jen kdyz nektery z jobu v "needs" selze - uzitecne pro notifikace o chybe.
+name: "[06 Execution Flow / 01 Starting] Website Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/06 Execution Flow/01 Starting Project/**'
+defaults:
+  run:
+    working-directory: Code/06 Execution Flow/01 Starting Project
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/01 Starting Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/01 Starting Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Test code
+        id: run-tests
+        run: npm run test
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure' # nahraje report jen pri selhani testu
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: Code/06 Execution Flow/01 Starting Project/test.json
+  build:
+    needs: test # pipeline: build ceka na uspech testu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/01 Starting Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/01 Starting Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Build website
+        id: build-website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/06 Execution Flow/01 Starting Project/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."
+  report:
+    needs: [lint, deploy] # sleduje oba "koncove" joby pipeline
+    if: failure() # spusti se jen pokud nektery z needs jobu selhal
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output information
+        run: | 
+          echo "Something went wrong"
+          echo "${{ toJSON(github) }}"

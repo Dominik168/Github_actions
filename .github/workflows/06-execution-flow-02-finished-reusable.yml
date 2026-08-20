@@ -1,0 +1,35 @@
+# moved from: Code/06 Execution Flow/02 Finished Project/.github/workflows/reusable.yml
+# called locally by 06-execution-flow-02-finished-use-reuse.yml via: uses: ./.github/workflows/06-execution-flow-02-finished-reusable.yml
+# TEORIE: "workflow_call" trigger = tento soubor NENI samostatny workflow, ale znovupouzitelna sablona
+# volana z jineho workflow pres "jobs.<id>.uses:". Ma vlastni "inputs" (parametry) a "outputs" (navratove hodnoty),
+# funguje podobne jako funkce - snizuje duplicitu kodu napric workflow soubory.
+name: "[06 Execution Flow / 02 Finished] Reusable Deploy"
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: The name of the deployable artifact files
+        required: false
+        default: dist
+        type: string
+    outputs:
+      result:
+        description: The result of the deployment operation
+        value: ${{ jobs.deploy.outputs.outcome }} # vystup jobu se stava vystupem celeho volaneho workflow
+jobs:
+  deploy:
+    outputs:
+      outcome: ${{ steps.set-result.outputs.step-result }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }} # hodnota predana z volajiciho workflow (nebo default "dist")
+      - name: List files
+        run: ls
+      - name: Output information
+        run: echo "Deploying & uploading..."
+      - name: Set result output
+        id: set-result
+        run: echo "step-result=success" >> $GITHUB_OUTPUT

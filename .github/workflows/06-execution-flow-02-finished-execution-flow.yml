@@ -1,0 +1,97 @@
+# moved from: Code/06 Execution Flow/02 Finished Project/.github/workflows/execution-flow.yml
+# TEORIE: stejny 4-jobovy pipeline vzor jako v "01 Starting" - lint+test paralelne, build po testu, deploy po buildu,
+# report jako "catch-all" pri selhani. Klic je "needs:" - definuje DAG (graf zavislosti) mezi joby.
+name: "[06 Execution Flow / 02 Finished] Website Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/06 Execution Flow/02 Finished Project/**'
+defaults:
+  run:
+    working-directory: Code/06 Execution Flow/02 Finished Project
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Test code
+        id: run-tests
+        run: npm run test
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure' # nahraje report jen pri selhani testu
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: Code/06 Execution Flow/02 Finished Project/test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Build website
+        id: build-website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/06 Execution Flow/02 Finished Project/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."
+  report:
+    needs: [lint, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output information
+        run: | 
+          echo "Something went wrong"
+          echo "${{ toJSON(github) }}"

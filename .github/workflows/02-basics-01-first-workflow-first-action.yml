@@ -1,0 +1,13 @@
+# moved from: Code/02 Basics/01 First Workflow/.github/workflows/first-action.yml
+# TEORIE: "workflow_dispatch" = rucni trigger tlacitkem v GitHub UI (Actions tab) nebo pres API/CLI.
+# Nejjednodussi mozny workflow - jeden job, dva sekvencni kroky ve stejne VM.
+name: "[02 Basics / 01 First Workflow] First Workflow"
+on: workflow_dispatch
+jobs:
+  first-job: # ID jobu - libovolny nazev, pouziva se pri odkazovani (needs:, outputs:) a v UI
+    runs-on: ubuntu-latest # typ virtualu (runneru), na kterem job pobezi - Ubuntu je nejcastejsi a nejlevnejsi volba
+    steps: # sekvence kroku - bezi jeden po druhem, ve stejne VM, sdili filesystem
+      - name: Print greeting # popisek kroku zobrazeny v GitHub UI (Actions log)
+        run: echo "Hello World!" # run: spusti shell prikaz primo na runneru (bez checkoutu zde neni zadny repo kod potreba)
+      - name: Print goodbye
+        run: echo "Done - bye!" # posledni krok - kdyby predchozi krok selhal (exit code neni 0), tento uz by se nespustil

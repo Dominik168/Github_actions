@@ -1,0 +1,38 @@
+# moved from: Code/08 Custom Actions/01 Starting Project/.github/workflows/deploy.yml
+# TEORIE: zakladni verze bez vlastnich (custom) akci - pouze oficialni "actions/setup-node" pro instalaci Node.js.
+# "on: [push, workflow_dispatch]" - zkraceny zapis pro vice trigger udalosti bez dalsich filtru.
+name: "[08 Custom Actions / 01 Starting] Deploy Project"
+on: [push, workflow_dispatch]
+defaults:
+  run:
+    working-directory: Code/08 Custom Actions/01 Starting Project
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Install NodeJS
+        uses: actions/setup-node@v3 # nainstaluje konkretni verzi Node.js na runner (ubuntu-latest ji sice ma predinstalovanou, ale jinou verzi)
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+  deploy:
+    needs: test # deploy ceka na uspech testu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3 # nova VM = novy checkout, i kdyz uz probehl v jobu "test"
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Build project
+        run: npm run build
+      - name: Deploy
+        run: echo "Deploying ..."

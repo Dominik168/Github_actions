@@ -1,0 +1,97 @@
+# moved from: Code/06 Execution Flow/02 Finished Project/.github/workflows/continue.yml
+# TEORIE: "continue-on-error: true" na urovni KROKU - krok muze selhat, ale job pokracuje dal (na rozdil od defaultu, kdy selhani kroku ukonci cely job).
+# Krok stale hlasi "failure" v steps.<id>.outcome, i kdyz job jako celek uspeje - proto dalsi krok upload artefaktu uz nema "if:" podminku (vzdy se nahraje).
+name: "[06 Execution Flow / 02 Finished] Continue Website Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/06 Execution Flow/02 Finished Project/**'
+defaults:
+  run:
+    working-directory: Code/06 Execution Flow/02 Finished Project
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Test code
+        continue-on-error: true # test smi selhat, job pokracuje dal (napr. na dalsi krok upload)
+        id: run-tests
+        run: npm run test
+      - name: Upload test report
+        uses: actions/upload-artifact@v3 # bez if: - nahraje se vzdy, i kdyz test krok selhal (diky continue-on-error)
+        with:
+          name: test-report
+          path: Code/06 Execution Flow/02 Finished Project/test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: Code/06 Execution Flow/02 Finished Project/node_modules
+          key: deps-node-modules-${{ hashFiles('Code/06 Execution Flow/02 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Build website
+        id: build-website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/06 Execution Flow/02 Finished Project/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."
+  report:
+    needs: [lint, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output information
+        run: | 
+          echo "Something went wrong"
+          echo "${{ toJSON(github) }}"

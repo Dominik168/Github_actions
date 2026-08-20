@@ -1,0 +1,83 @@
+# moved from: Code/02 Basics/03 Finished Project/.github/workflows/deployment.yml
+# TEORIE: standardni lint -> test -> build -> deploy pipeline s cachovanim npm zavislosti mezi beh workflow
+# (ne mezi joby! kazdy job pouziva stejny cache klic, ale cache se obnovuje jen kdyz se zmeni package-lock.json).
+name: "[02 Basics / 03 Finished] Website Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/02 Basics/03 Finished Project/**'
+defaults:
+  run:
+    working-directory: Code/02 Basics/03 Finished Project
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache # id kroku - jeho outputs jsou pak dostupne pres steps.cache.outputs.*
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest # samostatna VM - lint a test bezi PARALELNE (zadny needs: mezi nimi)
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Test code
+        run: npm run test
+      - name: Upload test report
+        uses: actions/upload-artifact@v3 # nahraje test.json jako artefakt, dostupny i pri prohlizeni v GH UI
+        with:
+          name: test-report
+          path: Code/02 Basics/03 Finished Project/test.json
+  build:
+    needs: test # build ceka jen na "test" (na "lint" NE - kdyby lint selhal, build i tak muze probehnout)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('Code/02 Basics/03 Finished Project/**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        id: build-website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/02 Basics/03 Finished Project/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3 # stahne artefakt "dist-files" nahrany v jobu build, do teto nove VM
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."

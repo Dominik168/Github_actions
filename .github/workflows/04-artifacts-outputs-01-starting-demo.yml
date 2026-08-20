@@ -1,0 +1,42 @@
+# moved from: Code/04 Artifacts & Outputs/01 Starting Project/.github/workflows/demo.yml
+# TEORIE: zjednodusena verze bez cache a bez artifacts - kazdy job si NEZAVISLE dela vlastni checkout+npm ci,
+# takze "build" nema pristup k souborum vygenerovanym v "test" (kazdy job = jina VM). "deploy" zde dokonce
+# ani neresi vystup z buildu (viz plnohodnotna verze v "03 Finished Project" s artifacts a outputs).
+name: "[04 Artifacts & Outputs / 01 Starting] Deploy website"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/04 Artifacts & Outputs/01 Starting Project/**'
+defaults:
+  run:
+    working-directory: Code/04 Artifacts & Outputs/01 Starting Project
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3 # naklonuje repo do teto (test) VM
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+      - name: Test code
+        run: npm run test
+  build:
+    needs: test # ceka na uspesne dokonceni jobu "test" (jinak se "build" vubec nespusti)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3 # nova VM = novy checkout, vysledky z "test" jobu (napr. node_modules) tu nejsou k dispozici
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        run: npm run build # vysledek (dist/) zustane jen v teto VM - dalsi job "deploy" k nemu bez artefaktu nema pristup
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: echo "Deploying..."

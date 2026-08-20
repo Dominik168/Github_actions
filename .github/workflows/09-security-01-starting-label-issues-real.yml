@@ -1,0 +1,23 @@
+# moved from: Code/09 Security/01 Starting Project/.github/workflows/label-issues-real.yml
+# TEORIE: zde chybi "permissions:" blok -> job bezi s vychozim (mozna sirsim) opravnenim GITHUB_TOKEN.
+# curl s Bearer tokenem vola GitHub REST API napřímo - $GITHUB_TOKEN je automaticky generovany, platny jen po dobu behu jobu.
+name: "[09 Security / 01 Starting] Label Issues (Permissions Example)"
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  assign-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign label
+        if: contains(github.event.issue.title, 'bug') # krok probehne jen kdyz nazev issue obsahuje slovo "bug"
+        run: |
+          curl -X POST \
+          --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+          -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          -H 'content-type: application/json' \
+          -d '{
+              "labels": ["bug"]
+            }' \
+          --fail

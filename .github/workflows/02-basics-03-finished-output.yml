@@ -1,0 +1,13 @@
+# moved from: Code/02 Basics/03 Finished Project/.github/workflows/output.yml
+# TEORIE: "github" kontext obsahuje vsechny metadata behu (repo, actor, sha, ref, event payload...).
+# toJSON() slouzi hlavne k debugovani - v realnem workflow se z kontextu cerpaji jen konkretni pole (napr. github.sha).
+name: "[02 Basics / 03 Finished] Output information"
+on: workflow_dispatch
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output GitHub context
+        # ${{ }} = expression syntax, vyhodnoti se pred odeslanim na runner (jeste na urovni GH backendu)
+        # toJSON() prevede cely objekt/kontext na citelny JSON retezec (jinak by echo vypsal jen chybu/prazdno)
+        run: echo "${{ toJSON(github) }}"

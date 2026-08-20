@@ -1,0 +1,40 @@
+# moved from: Code/03 Events/02 Finished Project/.github/workflows/demo1.yml
+# TEORIE: workflow muze mit VICE trigger udalosti soucasne (pull_request, workflow_dispatch, push).
+# Filtry branches: podporuji wildcard vzory ('dev-*' = jedna uroven, 'feat/**' = libovolna hloubka).
+name: "[03 Events / 02 Finished] Events Demo 1"
+on:
+  pull_request:
+    types:
+      - opened # jen otevreni PR (ne synchronize/reopened...)
+    branches:
+      - main
+      - 'dev-*'
+      - 'feat/**'
+  workflow_dispatch: # + moznost rucniho spusteni z UI
+  push:
+    branches:
+      - main
+      - 'dev-*'
+      - 'feat/**'
+    # scope trigger to this project's own subfolder only - other projects' pushes won't run it
+    paths:
+      - 'Code/03 Events/02 Finished Project/**'
+defaults:
+  run:
+    working-directory: Code/03 Events/02 Finished Project
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output event data
+        run: echo "${{ toJSON(github.event) }}" # obsah se lisi podle typu udalosti (push vs pull_request payload)
+      - name: Get code
+        uses: actions/checkout@v3 # naklonuje repo do runneru - bez toho by npm prikazy nemely s cim pracovat
+      - name: Install dependencies
+        run: npm ci # cisty install presne dle lockfile
+      - name: Test code
+        run: npm run test # spusti test skript z package.json
+      - name: Build code
+        run: npm run build # vyrobi produkcni build
+      - name: Deploy project
+        run: echo "Deploying..." # placeholder pro realny deploy krok

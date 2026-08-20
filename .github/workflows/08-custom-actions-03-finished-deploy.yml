@@ -1,0 +1,89 @@
+# moved from: Code/08 Custom Actions/03 Finished Project/.github/workflows/deploy.yml
+# note: local composite actions (uses: ./...) resolve relative to REPO ROOT, never to working-directory -
+# they were NOT moved and still live under Code/08 Custom Actions/03 Finished Project/.github/actions/
+# TEORIE: "permissions: id-token: write" na jobu "deploy" - potreba pro OIDC (OpenID Connect) autentizaci vuci
+# cloud provideru (napr. AWS) bez ulozenych dlouhodobych klicu - runner si vyzada kratkodobý token za behu.
+name: "[08 Custom Actions / 03 Finished] Deployment"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Code/08 Custom Actions/03 Finished Project/**'
+defaults:
+  run:
+    working-directory: Code/08 Custom Actions/03 Finished Project
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        id: cache-deps
+        uses: ./Code/08 Custom Actions/03 Finished Project/.github/actions/cached-deps
+        with:
+          caching: 'false'
+      - name: Output information
+        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        uses: ./Code/08 Custom Actions/03 Finished Project/.github/actions/cached-deps
+      - name: Test code
+        id: run-tests
+        run: npm run test
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: Code/08 Custom Actions/03 Finished Project/test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        uses: ./Code/08 Custom Actions/03 Finished Project/.github/actions/cached-deps
+      - name: Build website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: Code/08 Custom Actions/03 Finished Project/dist
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+          path: Code/08 Custom Actions/03 Finished Project/dist
+      - name: Output contents
+        run: ls
+      - name: Deploy site
+        id: deploy
+        uses: ./Code/08 Custom Actions/03 Finished Project/.github/actions/deploy-s3-docker # docker-based akce, vyuziva id-token pro OIDC prihlaseni k AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          bucket: gha-security-hosting-demo
+          dist-folder: Code/08 Custom Actions/03 Finished Project/dist
+      - name: Output information
+        run: |
+          echo "Live URL: ${{ steps.deploy.outputs.website-url }}"

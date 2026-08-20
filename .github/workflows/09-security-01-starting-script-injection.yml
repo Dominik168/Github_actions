@@ -1,0 +1,23 @@
+# moved from: Code/09 Security/01 Starting Project/.github/workflows/script-injection.yml
+# TEORIE (bezpecnostni FIX oproti "skript-injection" priste): vyraz ${{ }} se stale
+# vklada primo do "run:", jen bez env promenne. Skutecne bezpecne reseni je pouzit
+# "env:" mapovani (viz jiny soubor) - shell pak cte hodnotu z $PROMENNA, ne z primeho textoveho vlozeni do prikazu.
+name: "[09 Security / 01 Starting] Label Issues (Script Injection Example)"
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  assign-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign label
+        # POZOR: vyraz ${{ github.event.issue.title }} se pred spustenim textove vlozi primo do shell skriptu -
+        # jde jen o "castecny" fix (viz TEORIE nahore), skutecne bezpecne reseni pouziva "env:" mapovani
+        run: |
+          issue_title="${{ github.event.issue.title }}"
+          if [[ "$issue_title" == *"bug"* ]]; then
+          echo "Issue is about a bug!"
+          else
+          echo "Issue is not about a bug"
+          fi
